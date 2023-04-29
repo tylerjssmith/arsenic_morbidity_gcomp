@@ -8,6 +8,7 @@
 ##### Preliminaries ############################################################
 # Load Packages
 library(tidyverse)
+library(mgcv)
 
 ##### Summarize Variables ######################################################
 # Urinary Arsenobetaine
@@ -20,3 +21,4 @@ df %>%
     q1 = quantile(uAsB, 0.25), 
     q3 = quantile(uAsB, 0.75)
   )
+

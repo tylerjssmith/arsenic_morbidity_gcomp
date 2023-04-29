@@ -104,7 +104,7 @@ df %>% nrow()
 df <- df %>%
   mutate(ln_wAs = log(wAs))
 
-# Natural Log
+# Standards
 df <- df %>%
   mutate(wAs1  = ifelse(wAs > 1,  1, 0)) %>%
   mutate(wAs10 = ifelse(wAs > 10, 1, 0)) %>%
