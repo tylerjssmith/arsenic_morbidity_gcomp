@@ -10,9 +10,23 @@
 library(tidyverse)
 
 ##### Functions: Check Covariates ##############################################
-
-##### Functions: Generalized Additive Models ###################################
-gam_wrapper <- function(data, formula, link = "binomial") 
+# Function: Check Continuous Covariate
+check_continuous <- function(data, x, title = NULL, xlab = NULL)
 {
- gam(formula, data = data, family = link, method = "REML")
+  data %>%
+    ggplot(aes(x = {{ x }})) +
+    geom_density() +
+    labs(
+      title = title,
+      x = xlab,
+      y = "Density") +
+    th
+}
+
+# Function: Check Discrete Covariate
+check_discrete <- function(data, x)
+{
+  data %>%
+    count({{ x }}) %>%
+    mutate(p = n / sum(n) * 100)
 }

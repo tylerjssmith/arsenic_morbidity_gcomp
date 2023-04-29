@@ -104,11 +104,22 @@ df %>% nrow()
 df <- df %>%
   mutate(ln_wAs = log(wAs))
 
+df %>% 
+  check_continuous(
+    x = ln_wAs, 
+    title = "Drinking Water Arsenic", 
+    xlab = "Log(Drinking Water Arsenic)"
+  )
+
 # Standards
 df <- df %>%
   mutate(wAs1  = ifelse(wAs > 1,  1, 0)) %>%
   mutate(wAs10 = ifelse(wAs > 10, 1, 0)) %>%
   mutate(wAs50 = ifelse(wAs > 50, 1, 0))
+
+df %>% check_discrete(wAs1)
+df %>% check_discrete(wAs10)
+df %>% check_discrete(wAs50)
 
 df %>% head()
 
@@ -116,6 +127,13 @@ df %>% head()
 # Natural Log
 df <- df %>%
   mutate(ln_uAs = log(uAs))
+
+df %>% 
+  check_continuous(
+    x = ln_uAs, 
+    title = "Urinary Arsenic", 
+    xlab = "Log(Drinking Water Arsenic [∑uAs])"
+  )
 
 df %>% head()
 
