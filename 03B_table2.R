@@ -9,3 +9,13 @@
 # Load Packages
 library(tidyverse)
 library(table1)
+
+##### Generate Tables ##########################################################
+# Check Data
+df_tbl1 %>% head()
+
+# Urinary Arsenic Tertiles
+table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR | uAs3, 
+  data = df_tbl1, overall = FALSE, render.continuous = c(. = "Mean (SD)"), 
+  extra.col = list(`p` = tbl_pval))
+
