@@ -18,12 +18,14 @@ df_fig2 <- df %>%
     names_to = "Standard",
     values_to = "Status")
 
+# (Label Standard)
 df_fig2 <- df_fig2 %>%
   mutate(Standard = factor(Standard, levels = c("wAs1","wAs10","wAs50"),
     labels = c("1 µg/L","10 µg/L","50 µg/L")))
 
+# (Label Status)
 df_fig2 <- df_fig2 %>%
-  mutate(Status = factor(Status, levels = c(0,1), 
+  mutate(Status = factor(Status, levels = c(0:1),
     labels = c("Complies","Exceeds")))
 
 df_fig2 %>% head()
@@ -41,3 +43,6 @@ df_fig2 %>% head()
     x = "Urinary Arsenic (∑uAs) (µg/L)",
     y = "Density") +
   th)
+
+# Remove Objects
+rm(df_fig2)

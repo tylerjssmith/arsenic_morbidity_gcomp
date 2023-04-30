@@ -168,19 +168,19 @@ df <- df %>%
   mutate(wAs50 = ifelse(wAs > 50, 1, 0))
 
 df <- df %>%
-  mutate(wAs1 = factor(wAs1,
+  mutate(wAs1_lab = factor(wAs1,
     levels = c(0,1),
     labels = c("≤1 µg/L",">1 µg/L")
   ))
 
 df <- df %>%
-  mutate(wAs10 = factor(wAs10,
+  mutate(wAs10_lab = factor(wAs10,
     levels = c(0,1),
     labels = c("≤10 µg/L",">10 µg/L")
   ))
 
 df <- df %>%
-  mutate(wAs50 = factor(wAs50,
+  mutate(wAs50_lab = factor(wAs50,
     levels = c(0,1),
     labels = c("≤50 µg/L",">50 µg/L")
   ))
@@ -251,11 +251,23 @@ df %>% check_discrete(SEGSTAGE)
 df <- df %>%
   mutate(PARITY = ifelse(PARITY > 2, 2, PARITY))
 
+df <- df %>%
+  mutate(PARITY = factor(PARITY,
+    levels = c(0,1,2),
+    labels = c("Nulliparous","Primiparous","Multiparous")
+  ))
+
 df %>% check_discrete(PARITY)
 
 # Education
 df <- df %>%
   mutate(EDUCATION = ifelse(EDUCATION > 2, 2, EDUCATION))
+
+df <- df %>%
+  mutate(EDUCATION = factor(EDUCATION,
+    levels = c(0,1,2),
+    labels = c("None","Class 1-9","Class ≥10")
+  ))
 
 df %>% check_discrete(EDUCATION)
 
@@ -287,21 +299,49 @@ df %>%
 df <- df %>%
   mutate(PETOBAC = as.numeric(PETOBAC))
 
+df <- df %>%
+  mutate(PETOBAC = factor(PETOBAC,
+    levels = c(0,1),
+    labels = c("No","Yes")
+  ))
+
 df %>% check_discrete(PETOBAC)
 
 # Betel Nut Use
+df <- df %>%
+  mutate(PEBETEL = factor(PEBETEL,
+    levels = c(0,1),
+    labels = c("No","Yes")
+  ))
+
 df %>% check_discrete(PEBETEL)
 
 # Husband's Smoking
+df <- df %>%
+  mutate(PEHCIGAR = factor(PEHCIGAR,
+    levels = c(0,1),
+    labels = c("No","Yes")
+  ))
+
 df %>% check_discrete(PEHCIGAR)
 
 ##### Select Variables #########################################################
 df %>% colnames()
 
 df <- df %>%
-  select(UID,CHILDUID,CHILDDOB,LIVEBIRTH,SINGLETON,wAs,ln_wAs,l10_wAs,wAs1,
-    wAs10,wAs50,uAs,ln_uAs,l10_uAs,uAs3,uAsB,AGE,SEGSTAGE,PARITY,EDUCATION,LSI,
-    SEBMI,medSEMUAC,PETOBAC,PEBETEL,PEHCIGAR)
+  select(
+    # Identifiers and Pregnancy Outcomes
+    UID,CHILDUID,CHILDDOB,LIVEBIRTH,SINGLETON,
+    
+    # Drinking Water Arsenic
+    wAs,ln_wAs,l10_wAs,wAs1,wAs1_lab,wAs10,wAs10_lab,wAs50,wAs50_lab,
+    
+    # Urinary Arsenic
+    uAs,ln_uAs,l10_uAs,uAs3,uAsB,
+    
+    # Confounders
+    AGE,SEGSTAGE,PARITY,EDUCATION,LSI,SEBMI,medSEMUAC,PETOBAC,PEBETEL,PEHCIGAR
+  )
 
 df %>% head()
 

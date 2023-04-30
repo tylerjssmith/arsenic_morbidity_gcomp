@@ -41,3 +41,7 @@ labels_fig1 %>% head()
     y = "Urinary Arsenic (∑uAs) (µg/L)") +
   th)
 
+# Remove Objects
+rm(labels_fig1)
+
+
