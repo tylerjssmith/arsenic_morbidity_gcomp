@@ -18,6 +18,10 @@ pregtrak <- read_csv("j7pregtrak/pair_pregtrak_2022_0309.csv")
 kidtrak  <- read_csv("j7kidtrak/pair_kidtrak_2022_0310.csv")
 water    <- read_csv("assay_water_metals/pair_watermetals_pef_2022_1030.csv")
 urine    <- read_csv("assay_urinary_metals/pair_urinaryarsenic_2022_1029.csv")
+pefsst   <- read_csv("pefsst/pair_pefsst_2022_0310.csv") 
+pef      <- read_csv("pef/pair_pef_2022_0310.csv")
+parity   <- read_csv("pair_reprohistory/pair_reprohistory_2022_0328.csv")
+ses      <- read_csv("ses/pair_ses_2022_0310.csv")
 
 # Set Working Directory
 setwd("~/Desktop/research/manuscripts/smith_etal_pair_ili/code/arsenic_morbidity_gcomp/")
@@ -26,7 +30,11 @@ setwd("~/Desktop/research/manuscripts/smith_etal_pair_ili/code/arsenic_morbidity
 # J7PREGTRAK
 pregtrak <- pregtrak %>%
   filter(PEF == 1 & PEFSST == 1) %>%
-  select(UID)
+  select(
+    UID,
+    MOMDOB = DOBYY,
+    BGLMPWK
+  )
 
 pregtrak %>% head()
 
@@ -60,15 +68,53 @@ urine <- urine %>%
 
 urine %>% head()
 
+# PEFSST
+pefsst <- pefsst %>%
+  select(
+    UID,
+    SEDATE,
+    SEWKINT,
+    SEBMI,
+    medSEMUAC
+  )
+
+# PEF
+pef <- pef %>%
+  select(
+    UID,
+    PETOBAC,
+    PEBETEL,
+    PEHCIGAR
+  )
+
+# Parity
+parity <- parity %>%
+  select(
+    UID,
+    PARITY = FDPSR_PARITY
+  )
+
+# SES
+ses <- ses %>%
+  select(
+    UID,
+    EDUCATION = wehclass_mc2,
+    LSI = lsi
+  )
+
 ##### Join Data ################################################################
 df <- left_join(pregtrak, kidtrak, by = "UID")
 df <- left_join(df, water, by = "UID")
 df <- left_join(df, urine, by = "UID")
+df <- left_join(df, pefsst, by = "UID")
+df <- left_join(df, pef, by = "UID")
+df <- left_join(df, parity, by = "UID")
+df <- left_join(df, ses, by = "UID")
 
 df %>% head()
 
 # Remove Source Data
-rm(list = c("pregtrak","kidtrak","water","urine"))
+rm(list = c("pregtrak","kidtrak","water","urine","pefsst","pef","parity","ses"))
 
 ##### Set Sample ###############################################################
 # Indicate Live Birth
@@ -138,4 +184,81 @@ df %>%
 df %>% head()
 
 ##### Prepare: Confounders #####################################################
+# Age
+df <- df %>%
+  mutate(AGE = year(SEDATE) - MOMDOB)
+
+df %>% 
+  check_continuous(
+    x = AGE, 
+    title = "Age at Enrollment", 
+    xlab = "Age (years)"
+  )
+
+# Gestational Age at Enrollment
+df <- df %>%
+  mutate(SEGSTAGE = SEWKINT - BGLMPWK)
+
+df %>% check_discrete(SEGSTAGE)
+
+# Parity
+df <- df %>%
+  mutate(PARITY = ifelse(PARITY > 2, 2, PARITY))
+
+df %>% check_discrete(PARITY)
+
+# Education
+df <- df %>%
+  mutate(EDUCATION = ifelse(EDUCATION > 2, 2, EDUCATION))
+
+df %>% check_discrete(EDUCATION)
+
+# Living Standards Index
+df %>% 
+  check_continuous(
+    x = LSI, 
+    title = "Living Standards Index", 
+    xlab = "Living Standards Index"
+  )
+
+# Body Mass Index
+df %>% 
+  check_continuous(
+    x = SEBMI, 
+    title = "Body Mass Index at Enrollment", 
+    xlab = expression("Body Mass Index (kg/m" ^ 2 * ")")
+  )
+
+# Mid-upper Arm Circumference
+df %>% 
+  check_continuous(
+    x = medSEMUAC, 
+    title = "Mid-upper Arm Circumference at Enrollment", 
+    xlab = "Mid-upper Arm Circumference (cm)"
+  )
+
+# Chewing Tobacco Use
+df <- df %>%
+  mutate(PETOBAC = as.numeric(PETOBAC))
+
+df %>% check_discrete(PETOBAC)
+
+# Betel Nut Use
+df %>% check_discrete(PEBETEL)
+
+# Husband's Smoking
+df %>% check_discrete(PEHCIGAR)
+
+##### Select Variables #########################################################
+df %>% colnames()
+
+df <- df %>%
+  select(UID,CHILDUID,CHILDDOB,LIVEBIRTH,SINGLETON,wAs,ln_wAs,wAs1,wAs10,wAs50,
+    uAs,ln_uAs,uAsB,AGE,SEGSTAGE,PARITY,EDUCATION,LSI,SEBMI,medSEMUAC,
+    PETOBAC,PEBETEL,PEHCIGAR)
+
+df %>% head()
+
+
+
 
