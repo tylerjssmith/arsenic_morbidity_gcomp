@@ -31,11 +31,10 @@ df %>%
   as_tibble(rownames = "Variable") %>%
   filter(value != 0)
 
-##### Assess Missingness #######################################################
+##### Live Birth ###############################################################
 df %>% count(LIVEBIRTH)
-df %>% count(SINGLETON)
 
-# Models: Live Birth by Arsenic
+# Models: Arsenic
 df %>%
   select(ln_wAs,ln_uAs) %>%
   map(~ gam(LIVEBIRTH ~ s(.x), data = df, family = "binomial", 
@@ -48,7 +47,28 @@ df %>%
   map_dfr(tidy, conf.int = TRUE, .id = "x") %>%
   filter(term == ".x")
 
-# (Singleton | Live Birth) by Arsenic
+# Models: All Covariates
+df %>%
+  select(ln_wAs,ln_uAs) %>%
+  map(~ gam(LIVEBIRTH ~ s(.x) + s(AGE) + SEGSTAGE + PARITY + EDUCATION + 
+      s(LSI) + s(medSEMUAC) + PETOBAC + PEBETEL + PEHCIGAR, data = df, 
+    family = "binomial", method = "REML")) %>%
+  map_dfr(tidy, .id = "x")
+
+df %>%
+  select(ln_wAs,ln_uAs,wAs1,wAs10,wAs50) %>%
+  map(~ glm(LIVEBIRTH ~ .x + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
+      poly(medSEMUAC, 2) + PETOBAC + PEBETEL + PEHCIGAR, data = df, 
+    family = "binomial")) %>%
+  map_dfr(tidy, conf.int = TRUE, exponentiate = TRUE, .id = "x") %>%
+  filter(term != "(Intercept)") %>%
+  filter(p.value < 0.2) %>%
+  arrange(term)
+
+##### Singleton | Live Birth ###################################################
+df %>% count(SINGLETON)
+
+# Models: Arsenic
 df %>%
   select(ln_wAs,ln_uAs) %>%
   map(~ gam(SINGLETON ~ s(.x), data = df, family = "binomial", 
@@ -60,3 +80,23 @@ df %>%
   map(~ glm(SINGLETON ~ .x, data = df, family = "binomial")) %>%
   map_dfr(tidy, conf.int = TRUE, .id = "x") %>%
   filter(term == ".x")
+
+# Models: All Covariates
+df %>%
+  select(ln_wAs,ln_uAs) %>%
+  map(~ gam(SINGLETON ~ s(.x) + s(AGE) + SEGSTAGE + PARITY + EDUCATION + 
+      s(LSI) + s(medSEMUAC) + PETOBAC + PEBETEL + PEHCIGAR, data = df, 
+    family = "binomial", method = "REML")) %>%
+  map_dfr(tidy, .id = "x")
+
+df %>%
+  select(ln_wAs,ln_uAs,wAs1,wAs10,wAs50) %>%
+  map(~ glm(SINGLETON ~ .x + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
+      medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR, data = df, 
+    family = "binomial")) %>%
+  map_dfr(tidy, conf.int = TRUE, exponentiate = TRUE, .id = "x") %>%
+  filter(term != "(Intercept)") %>%
+  filter(p.value < 0.2) %>%
+  arrange(term)
+
+
