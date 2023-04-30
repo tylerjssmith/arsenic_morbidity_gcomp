@@ -157,11 +157,33 @@ df %>%
     xlab = "Log(Drinking Water Arsenic)"
   )
 
+# Common Log
+df <- df %>%
+  mutate(l10_wAs = log10(wAs))
+
 # Standards
 df <- df %>%
   mutate(wAs1  = ifelse(wAs > 1,  1, 0)) %>%
   mutate(wAs10 = ifelse(wAs > 10, 1, 0)) %>%
   mutate(wAs50 = ifelse(wAs > 50, 1, 0))
+
+df <- df %>%
+  mutate(wAs1 = factor(wAs1,
+    levels = c(0,1),
+    labels = c("≤1 µg/L",">1 µg/L")
+  ))
+
+df <- df %>%
+  mutate(wAs10 = factor(wAs10,
+    levels = c(0,1),
+    labels = c("≤10 µg/L",">10 µg/L")
+  ))
+
+df <- df %>%
+  mutate(wAs50 = factor(wAs50,
+    levels = c(0,1),
+    labels = c("≤50 µg/L",">50 µg/L")
+  ))
 
 df %>% check_discrete(wAs1)
 df %>% check_discrete(wAs10)
@@ -181,6 +203,20 @@ df %>%
     xlab = "Log(Drinking Water Arsenic [∑uAs])"
   )
 
+# Common Log
+df <- df %>%
+  mutate(l10_uAs = log10(uAs))
+
+# Tertiles
+df <- df %>%
+  mutate(uAs3 = ntile(uAs, 3))
+
+df <- df %>%
+  mutate(uAs3 = factor(uAs3,
+    levels = c(1,2,3),
+    labels = c("Tertile 1","Tertile 2","Tertile 3")
+  ))
+
 df %>% head()
 
 ##### Prepare: Confounders #####################################################
@@ -198,6 +234,16 @@ df %>%
 # Gestational Age at Enrollment
 df <- df %>%
   mutate(SEGSTAGE = SEWKINT - BGLMPWK)
+
+df <- df %>%
+  mutate(SEGSTAGE = ifelse(SEGSTAGE < 13, 13, SEGSTAGE)) %>%
+  mutate(SEGSTAGE = ifelse(SEGSTAGE > 16, 16, SEGSTAGE))
+
+df <- df %>%
+  mutate(SEGSTAGE = factor(SEGSTAGE,
+    levels = c(13:16),
+    labels = c("11-13","14","15","16-17")
+  ))
 
 df %>% check_discrete(SEGSTAGE)
 
@@ -253,9 +299,9 @@ df %>% check_discrete(PEHCIGAR)
 df %>% colnames()
 
 df <- df %>%
-  select(UID,CHILDUID,CHILDDOB,LIVEBIRTH,SINGLETON,wAs,ln_wAs,wAs1,wAs10,wAs50,
-    uAs,ln_uAs,uAsB,AGE,SEGSTAGE,PARITY,EDUCATION,LSI,SEBMI,medSEMUAC,
-    PETOBAC,PEBETEL,PEHCIGAR)
+  select(UID,CHILDUID,CHILDDOB,LIVEBIRTH,SINGLETON,wAs,ln_wAs,l10_wAs,wAs1,
+    wAs10,wAs50,uAs,ln_uAs,l10_uAs,uAs3,uAsB,AGE,SEGSTAGE,PARITY,EDUCATION,LSI,
+    SEBMI,medSEMUAC,PETOBAC,PEBETEL,PEHCIGAR)
 
 df %>% head()
 
