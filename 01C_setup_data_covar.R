@@ -145,7 +145,7 @@ df <- df %>%
 df %>% head()
 df %>% nrow()
 
-##### Prepare: Drinking Water Arsenic ##########################################
+##### Drinking Water Arsenic ###################################################
 # Natural Log
 df <- df %>%
   mutate(ln_wAs = log(wAs))
@@ -191,7 +191,7 @@ df %>% check_discrete(wAs50)
 
 df %>% head()
 
-##### Prepare: Urinary Arsenic #################################################
+##### Urinary Arsenic ##########################################################
 # Natural Log
 df <- df %>%
   mutate(ln_uAs = log(uAs))
@@ -219,8 +219,7 @@ df <- df %>%
 
 df %>% head()
 
-##### Prepare: Confounders #####################################################
-# Age
+##### Age at Enrollment ########################################################
 df <- df %>%
   mutate(AGE = year(SEDATE) - MOMDOB)
 
@@ -231,7 +230,7 @@ df %>%
     xlab = "Age (years)"
   )
 
-# Gestational Age at Enrollment
+##### Gestational Age at Enrollment ############################################
 df <- df %>%
   mutate(SEGSTAGE = SEWKINT - BGLMPWK)
 
@@ -247,7 +246,7 @@ df <- df %>%
 
 df %>% check_discrete(SEGSTAGE)
 
-# Parity
+##### Parity ###################################################################
 df <- df %>%
   mutate(PARITY = ifelse(PARITY > 2, 2, PARITY))
 
@@ -259,7 +258,7 @@ df <- df %>%
 
 df %>% check_discrete(PARITY)
 
-# Education
+##### Education ################################################################
 df <- df %>%
   mutate(EDUCATION = ifelse(EDUCATION > 2, 2, EDUCATION))
 
@@ -271,7 +270,7 @@ df <- df %>%
 
 df %>% check_discrete(EDUCATION)
 
-# Living Standards Index
+##### Living Standards Index ###################################################
 df %>% 
   check_continuous(
     x = LSI, 
@@ -279,7 +278,7 @@ df %>%
     xlab = "Living Standards Index"
   )
 
-# Body Mass Index
+##### Body Mass Index at Enrollment ############################################
 df %>% 
   check_continuous(
     x = SEBMI, 
@@ -287,7 +286,7 @@ df %>%
     xlab = expression("Body Mass Index (kg/m" ^ 2 * ")")
   )
 
-# Mid-upper Arm Circumference
+##### Mid-upper Arm Circumference at Enrollment ################################
 df %>% 
   check_continuous(
     x = medSEMUAC, 
@@ -295,7 +294,7 @@ df %>%
     xlab = "Mid-upper Arm Circumference (cm)"
   )
 
-# Chewing Tobacco Use
+##### Chewing Tobacco Use ######################################################
 df <- df %>%
   mutate(PETOBAC = as.numeric(PETOBAC))
 
@@ -307,7 +306,7 @@ df <- df %>%
 
 df %>% check_discrete(PETOBAC)
 
-# Betel Nut Use
+##### Betel Nut Use ############################################################
 df <- df %>%
   mutate(PEBETEL = factor(PEBETEL,
     levels = c(0,1),
@@ -316,7 +315,7 @@ df <- df %>%
 
 df %>% check_discrete(PEBETEL)
 
-# Husband's Smoking
+##### Husband's Smoking ########################################################
 df <- df %>%
   mutate(PEHCIGAR = factor(PEHCIGAR,
     levels = c(0,1),
