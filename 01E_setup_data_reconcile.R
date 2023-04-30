@@ -37,7 +37,7 @@ df %>% count(LIVEBIRTH)
 # Models: Arsenic
 df %>%
   select(ln_wAs,ln_uAs) %>%
-  map(~ gam(LIVEBIRTH ~ s(.x), data = df, family = "binomial", 
+  map(~ gam(LIVEBIRTH ~ s(.x, bs = "cr"), data = df, family = "binomial", 
     method = "REML")) %>%
   map_dfr(tidy, .id = "x")
 
@@ -50,8 +50,9 @@ df %>%
 # Models: All Covariates
 df %>%
   select(ln_wAs,ln_uAs) %>%
-  map(~ gam(LIVEBIRTH ~ s(.x) + s(AGE) + SEGSTAGE + PARITY + EDUCATION + 
-      s(LSI) + s(medSEMUAC) + PETOBAC + PEBETEL + PEHCIGAR, data = df, 
+  map(~ gam(LIVEBIRTH ~ s(.x, bs = "cr") + s(AGE, bs = "cr") + SEGSTAGE + 
+      PARITY + EDUCATION + s(LSI, bs = "cr") + s(medSEMUAC, bs = "cr") + 
+      PETOBAC + PEBETEL + PEHCIGAR, data = df, 
     family = "binomial", method = "REML")) %>%
   map_dfr(tidy, .id = "x")
 
@@ -71,7 +72,7 @@ df %>% count(SINGLETON)
 # Models: Arsenic
 df %>%
   select(ln_wAs,ln_uAs) %>%
-  map(~ gam(SINGLETON ~ s(.x), data = df, family = "binomial", 
+  map(~ gam(SINGLETON ~ s(.x, bs = "cr"), data = df, family = "binomial", 
     method = "REML")) %>%
   map_dfr(tidy, .id = "x")
 
@@ -84,19 +85,19 @@ df %>%
 # Models: All Covariates
 df %>%
   select(ln_wAs,ln_uAs) %>%
-  map(~ gam(SINGLETON ~ s(.x) + s(AGE) + SEGSTAGE + PARITY + EDUCATION + 
-      s(LSI) + s(medSEMUAC) + PETOBAC + PEBETEL + PEHCIGAR, data = df, 
+  map(~ gam(SINGLETON ~ s(.x, bs = "cr") + s(AGE, bs = "cr") + SEGSTAGE + 
+      PARITY + EDUCATION + s(LSI, bs = "cr") + s(medSEMUAC, bs = "cr") + 
+      PETOBAC + PEBETEL + PEHCIGAR, data = df, 
     family = "binomial", method = "REML")) %>%
   map_dfr(tidy, .id = "x")
 
 df %>%
   select(ln_wAs,ln_uAs,wAs1,wAs10,wAs50) %>%
   map(~ glm(SINGLETON ~ .x + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
-      medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR, data = df, 
+      poly(medSEMUAC, 2) + PETOBAC + PEBETEL + PEHCIGAR, data = df, 
     family = "binomial")) %>%
   map_dfr(tidy, conf.int = TRUE, exponentiate = TRUE, .id = "x") %>%
   filter(term != "(Intercept)") %>%
   filter(p.value < 0.2) %>%
   arrange(term)
-
 
