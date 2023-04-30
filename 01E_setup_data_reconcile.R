@@ -13,12 +13,10 @@ library(broom)
 
 ##### Assess Selection #########################################################
 # Enrolled (n=784)
-df %>% 
-  nrow()
+df %>% nrow()
 
 # Live Births (n=736)
-df %>% 
-  count(LIVEBIRTH)
+df %>% count(LIVEBIRTH)
 
 # Singleton Live Births (n=722)
 df %>% 
@@ -29,13 +27,15 @@ df %>%
 df %>% 
   filter(LIVEBIRTH == 1) %>% 
   filter(SINGLETON == 1) %>% 
-  sapply(function(x) sum(is.na(x)))
+  sapply(function(x) sum(is.na(x))) %>%
+  as_tibble(rownames = "Variable") %>%
+  filter(value != 0)
 
 ##### Assess Missingness #######################################################
 df %>% count(LIVEBIRTH)
 df %>% count(SINGLETON)
 
-# Generalized Additive Models: Live Birth
+# Models: Live Birth by Arsenic
 df %>%
   select(ln_wAs,ln_uAs) %>%
   map(~ gam(LIVEBIRTH ~ s(.x), data = df, family = "binomial", 
@@ -48,7 +48,7 @@ df %>%
   map_dfr(tidy, conf.int = TRUE, .id = "x") %>%
   filter(term == ".x")
 
-# Generalized Additive Models: Singleton | Live Birth
+# (Singleton | Live Birth) by Arsenic
 df %>%
   select(ln_wAs,ln_uAs) %>%
   map(~ gam(SINGLETON ~ s(.x), data = df, family = "binomial", 
@@ -60,7 +60,3 @@ df %>%
   map(~ glm(SINGLETON ~ .x, data = df, family = "binomial")) %>%
   map_dfr(tidy, conf.int = TRUE, .id = "x") %>%
   filter(term == ".x")
-
-
-
-
