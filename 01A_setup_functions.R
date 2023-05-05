@@ -31,6 +31,33 @@ check_discrete <- function(data, x)
     mutate(p = n / sum(n) * 100)
 }
 
+##### Functions: Check Outcomes ################################################
+# Function: Check Calls by Age for Random Subset (n=25)
+check_calls <- function(data = ili)
+{
+  # Sample UID
+  tmp1 <- data %>% group_by(UID) %>% slice_head() %>% pull(UID)
+  tmp2 <- floor(runif(1, 25, length(tmp1) - 25))
+  tmp3 <- tmp1[(tmp2-24):tmp2]
+
+  # Plot Calls by Child Age
+  data %>%
+    filter(UID %in% tmp3) %>%
+    mutate(AGE = DATE - CHILDDOB) %>%
+    ggplot(aes(x = AGE, y = factor(UID), group = factor(UID))) +
+    geom_line(color = "gray") +
+    geom_point() +
+    scale_x_continuous(breaks = seq(0,100,10)) +
+    labs(
+      x = "Age (days)",
+      y = "UID") +
+    th + 
+    theme(
+      axis.text.y = element_blank(), 
+      axis.ticks.y = element_blank()
+    )
+}
+
 ##### Functions: Tables ########################################################
 # Function: p-values for Tables 1-2
 tbl_pval <- function(x, ...) {

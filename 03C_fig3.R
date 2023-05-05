@@ -11,7 +11,7 @@ library(tidyverse)
 
 ##### Generate Figure ##########################################################
 # Prepare Data
-df_fig2 <- df %>%
+df_fig2 <- df_selected %>%
   select(wAs1,wAs10,wAs50,l10_uAs) %>%
   pivot_longer(
     cols = -l10_uAs,
@@ -38,7 +38,7 @@ df_fig2 %>% head()
   facet_wrap(. ~ Standard) +
   scale_x_continuous(limits = c(0,3.1), breaks = seq(-10,10,1), 
     labels = base10) +
-  scale_y_continuous(limits = c(0,2)) +
+  scale_y_continuous(limits = c(0,2.1)) +
   labs(
     x = "Urinary Arsenic (∑uAs) (µg/L)",
     y = "Density") +

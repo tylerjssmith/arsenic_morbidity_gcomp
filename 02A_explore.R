@@ -11,6 +11,11 @@ library(tidyverse)
 library(mgcv)
 
 ##### Summarize Variables ######################################################
+# Values <LLOD
+df %>% 
+  filter(COMPLETE == 1) %>% 
+  count(wAs < 0.02)
+
 # Urinary Arsenobetaine
 df %>% 
   select(uAsB) %>%

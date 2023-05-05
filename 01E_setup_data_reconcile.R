@@ -9,95 +9,159 @@
 # Load Packages
 library(tidyverse)
 library(mgcv)
+library(car)
 library(broom)
+
+##### Join Data ################################################################
+df <- left_join(df, ili_summary, by = "UID")
+
+df %>% head()
+
+##### Indicate Selection #######################################################
+# Indicate Selection
+df <- df %>%
+  mutate(COMPLETE = ifelse(!is.na(wAs) & !is.na(wFe) & !is.na(uAs) & 
+      !is.na(AGE) & !is.na(medSEMUAC) & !is.na(PETOBAC), 1, 0))
+
+df %>% head()
+
+df <- df %>%
+  mutate(COMPLETE = factor(COMPLETE,
+    levels = c(0,1),
+    labels = c("Incomplete","Complete")
+  ))
+
+df %>% count(COMPLETE)
+
+df <- df %>%
+  mutate(SELECTED = ifelse(COMPLETE == "Complete" & LIVEBIRTH == 1 & 
+      SINGLETON == 1 & !is.na(WEEKS), 1, 0))
+
+df %>% head()
+
+df <- df %>%
+  mutate(SELECTED = factor(SELECTED,
+    levels = c(0,1),
+    labels = c("Not Selected","Selected")
+  ))
+
+df %>% count(SELECTED)
+
+# Subset on Selection
+df_complete <- df %>%
+  filter(COMPLETE == "Complete")
+
+df_selected <- df_complete %>%
+  filter(SELECTED == "Selected")
 
 ##### Assess Selection #########################################################
 # Enrolled (n=784)
 df %>% nrow()
 
-# Live Births (n=736)
-df %>% count(LIVEBIRTH)
+# +Complete Covariate Data
+df %>% count(COMPLETE)
 
-# Singleton Live Births (n=722)
+# +Live Births
 df %>% 
+  filter(COMPLETE == "Complete") %>%
+  count(LIVEBIRTH)
+
+# +Singleton Live Births
+df %>% 
+  filter(COMPLETE == "Complete") %>%
   filter(LIVEBIRTH == 1) %>% 
   count(SINGLETON)
 
-# Complete Covariate Data
-df %>% 
-  filter(LIVEBIRTH == 1) %>% 
-  filter(SINGLETON == 1) %>% 
-  sapply(function(x) sum(is.na(x))) %>%
-  as_tibble(rownames = "Variable") %>%
-  filter(value != 0)
+# +Contributed ≥1 Person-week
+df %>%
+  filter(SELECTED == "Selected") %>%
+  summarise(
+    n = sum(!is.na(WEEKS)),
+    weeks = sum(WEEKS, na.rm = TRUE)
+  )
+
+##### Selection ################################################################
+df %>% count(SELECTED)
+
+# Logistic Regression: Conditional Probabilities
+# (Interventions)
+summary(mod_sel_wAs1    <- glm(SELECTED ~ wAs1 + AGE + SEGSTAGE + PARITY + 
+    EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = df_complete))
+summary(mod_sel_wAs10   <- glm(SELECTED ~ wAs10 + AGE + SEGSTAGE + PARITY + 
+    EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = df_complete))
+summary(mod_sel_wAs50   <- glm(SELECTED ~ wAs50 + AGE + SEGSTAGE + PARITY + 
+    EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = df_complete))
+summary(mod_sel_uAs_p10 <- glm(SELECTED ~ uAs_p10 + AGE + SEGSTAGE + PARITY + 
+    EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = df_complete))
+
+# (Continuous)
+summary(mod_sel_wAs <- glm(SELECTED ~ ln_wAs + AGE + SEGSTAGE + PARITY + 
+    EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = df_complete))
+summary(mod_sel_uAs <- glm(SELECTED ~ ln_uAs + AGE + SEGSTAGE + PARITY + 
+    EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = df_complete))
+
+# Logistic Regression: Marginal Probability
+summary(mod_sel_mar <- glm(SELECTED ~ 1,
+  family = binomial, data = df_complete))
+
+# Calculate Stabilized Weights
+df_complete$Wt_ln_wAs <- fitted.values(mod_sel_mar) / fitted.values(mod_sel_wAs)
+df_complete$Wt_ln_uAs <- fitted.values(mod_sel_mar) / fitted.values(mod_sel_uAs)
+
+# (Plot: Boxplots)
+df_complete %>%
+  select(SELECTED,Wt_ln_wAs,Wt_ln_uAs) %>%
+  pivot_longer(-SELECTED) %>%
+  ggplot(aes(x = factor(SELECTED), y = value)) +
+  geom_boxplot() +
+  facet_wrap(. ~ name) +
+  labs(
+    x = "Selected",
+    y = "1 / P(Selection | Exposure, Confounders)") +
+  th
+
+# (Plot: Weights by ln ∑uAs)
+df_complete %>%
+  ggplot(aes(x = ln_uAs, y = Wt_ln_uAs)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm") +
+  labs(
+    x = "ln ∑uAs",
+    y = "P(Selection) / P(Selection | ln ∑uAs, Confounders)") +
+  th
 
 ##### Live Birth ###############################################################
 df %>% count(LIVEBIRTH)
 
-# Models: Arsenic
-df %>%
-  select(ln_wAs,ln_uAs) %>%
-  map(~ gam(LIVEBIRTH ~ s(.x, bs = "cr"), data = df, family = "binomial", 
-    method = "REML")) %>%
-  map_dfr(tidy, .id = "x")
+summary(glm(LIVEBIRTH ~ ln_wAs + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
+    medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = subset(df, COMPLETE == "Complete")))
 
-df %>%
-  select(ln_wAs,ln_uAs,wAs1,wAs10,wAs50) %>%
-  map(~ glm(LIVEBIRTH ~ .x, data = df, family = "binomial")) %>%
-  map_dfr(tidy, conf.int = TRUE, .id = "x") %>%
-  filter(term == ".x")
+summary(glm(LIVEBIRTH ~ ln_uAs + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
+    medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = subset(df, COMPLETE == "Complete")))
 
-# Models: All Covariates
-df %>%
-  select(ln_wAs,ln_uAs) %>%
-  map(~ gam(LIVEBIRTH ~ s(.x, bs = "cr") + s(AGE, bs = "cr") + SEGSTAGE + 
-      PARITY + EDUCATION + s(LSI, bs = "cr") + s(medSEMUAC, bs = "cr") + 
-      PETOBAC + PEBETEL + PEHCIGAR, data = df, 
-    family = "binomial", method = "REML")) %>%
-  map_dfr(tidy, .id = "x")
+##### Selection | Live Birth ###################################################
+# All Live Births
+summary(glm(SELECTED ~ ln_wAs + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
+    medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = subset(df, LIVEBIRTH == 1)))
 
-df %>%
-  select(ln_wAs,ln_uAs,wAs1,wAs10,wAs50) %>%
-  map(~ glm(LIVEBIRTH ~ .x + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
-      poly(medSEMUAC, 2) + PETOBAC + PEBETEL + PEHCIGAR, data = df, 
-    family = "binomial")) %>%
-  map_dfr(tidy, conf.int = TRUE, exponentiate = TRUE, .id = "x") %>%
-  filter(term != "(Intercept)") %>%
-  filter(p.value < 0.2) %>%
-  arrange(term)
+summary(glm(SELECTED ~ ln_uAs + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
+    medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = subset(df, LIVEBIRTH == 1)))
 
-##### Singleton | Live Birth ###################################################
-df %>% count(SINGLETON)
+# Singleton Live Births
+summary(glm(SELECTED ~ ln_wAs + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
+    medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = subset(df, SINGLETON == 1)))
 
-# Models: Arsenic
-df %>%
-  select(ln_wAs,ln_uAs) %>%
-  map(~ gam(SINGLETON ~ s(.x, bs = "cr"), data = df, family = "binomial", 
-    method = "REML")) %>%
-  map_dfr(tidy, .id = "x")
-
-df %>%
-  select(ln_wAs,ln_uAs,wAs1,wAs10,wAs50) %>%
-  map(~ glm(SINGLETON ~ .x, data = df, family = "binomial")) %>%
-  map_dfr(tidy, conf.int = TRUE, .id = "x") %>%
-  filter(term == ".x")
-
-# Models: All Covariates
-df %>%
-  select(ln_wAs,ln_uAs) %>%
-  map(~ gam(SINGLETON ~ s(.x, bs = "cr") + s(AGE, bs = "cr") + SEGSTAGE + 
-      PARITY + EDUCATION + s(LSI, bs = "cr") + s(medSEMUAC, bs = "cr") + 
-      PETOBAC + PEBETEL + PEHCIGAR, data = df, 
-    family = "binomial", method = "REML")) %>%
-  map_dfr(tidy, .id = "x")
-
-df %>%
-  select(ln_wAs,ln_uAs,wAs1,wAs10,wAs50) %>%
-  map(~ glm(SINGLETON ~ .x + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
-      poly(medSEMUAC, 2) + PETOBAC + PEBETEL + PEHCIGAR, data = df, 
-    family = "binomial")) %>%
-  map_dfr(tidy, conf.int = TRUE, exponentiate = TRUE, .id = "x") %>%
-  filter(term != "(Intercept)") %>%
-  filter(p.value < 0.2) %>%
-  arrange(term)
-
+summary(glm(SELECTED ~ ln_uAs + AGE + SEGSTAGE + PARITY + EDUCATION + LSI + 
+    medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wFe, 
+  family = binomial, data = subset(df, SINGLETON == 1)))

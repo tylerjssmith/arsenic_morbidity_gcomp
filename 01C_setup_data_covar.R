@@ -43,14 +43,18 @@ kidtrak <- kidtrak %>%
   select(
     UID = MOMUID,
     CHILDUID,
-    CHILDDOB
+    CHILDDOB,
+    CHILDSEX
   )
 
-# Drinking Water Arsenic
+kidtrak %>% head()
+
+# Drinking Water Elements
 water <- water %>%
   select(
     UID,
-    wAs = PE_wMetals_As
+    wAs = PE_wMetals_As,
+    wFe = PE_wMetals_Fe
   )
 
 water <- water %>%
@@ -78,6 +82,8 @@ pefsst <- pefsst %>%
     medSEMUAC
   )
 
+pefsst %>% head()
+
 # PEF
 pef <- pef %>%
   select(
@@ -87,12 +93,16 @@ pef <- pef %>%
     PEHCIGAR
   )
 
+pef %>% head()
+
 # Parity
 parity <- parity %>%
   select(
     UID,
     PARITY = FDPSR_PARITY
   )
+
+parity %>% head()
 
 # SES
 ses <- ses %>%
@@ -101,6 +111,8 @@ ses <- ses %>%
     EDUCATION = wehclass_mc2,
     LSI = lsi
   )
+
+ses %>% head()
 
 ##### Join Data ################################################################
 df <- left_join(pregtrak, kidtrak, by = "UID")
@@ -161,7 +173,7 @@ df %>%
 df <- df %>%
   mutate(l10_wAs = log10(wAs))
 
-# Standards
+# Interventions
 df <- df %>%
   mutate(wAs1  = ifelse(wAs > 1,  1, 0)) %>%
   mutate(wAs10 = ifelse(wAs > 10, 1, 0)) %>%
@@ -191,6 +203,26 @@ df %>% check_discrete(wAs50)
 
 df %>% head()
 
+##### Drinking Water Iron ######################################################
+# Drop Implausible Value
+df <- df %>%
+  mutate(wFe = ifelse(wFe > 250000, NA, wFe))
+
+# Natural Log
+df <- df %>%
+  mutate(ln_wFe = log(wFe))
+
+df %>% 
+  check_continuous(
+    x = ln_wFe, 
+    title = "Drinking Water Iron", 
+    xlab = "Log(Drinking Water Iron)"
+  )
+
+# Common Log
+df <- df %>%
+  mutate(l10_wFe = log10(wFe))
+
 ##### Urinary Arsenic ##########################################################
 # Natural Log
 df <- df %>%
@@ -207,17 +239,16 @@ df %>%
 df <- df %>%
   mutate(l10_uAs = log10(uAs))
 
-# Tertiles
-df <- df %>%
-  mutate(uAs3 = ntile(uAs, 3))
+# Intervention
+df %>%
+  summarise(
+    n = sum(!is.na(uAs)),
+    p10 = quantile(uAs, 0.1, 
+      na.rm = TRUE)
+  )
 
 df <- df %>%
-  mutate(uAs3 = factor(uAs3,
-    levels = c(1,2,3),
-    labels = c("Tertile 1","Tertile 2","Tertile 3")
-  ))
-
-df %>% head()
+  mutate(uAs_p10 = ifelse(uAs > quantile(uAs, 0.10, na.rm = TRUE), 1, 0))
 
 ##### Age at Enrollment ########################################################
 df <- df %>%
@@ -294,6 +325,10 @@ df %>%
     xlab = "Mid-upper Arm Circumference (cm)"
   )
 
+# Drop Implausible Value
+df <- df %>% 
+  mutate(medSEMUAC = ifelse(medSEMUAC < 15 & SEBMI > 25, NA, medSEMUAC))
+
 ##### Chewing Tobacco Use ######################################################
 df <- df %>%
   mutate(PETOBAC = as.numeric(PETOBAC))
@@ -330,16 +365,17 @@ df %>% colnames()
 df <- df %>%
   select(
     # Identifiers and Pregnancy Outcomes
-    UID,CHILDUID,CHILDDOB,LIVEBIRTH,SINGLETON,
+    UID,CHILDUID,CHILDDOB,LIVEBIRTH,SINGLETON,CHILDSEX,
     
     # Drinking Water Arsenic
     wAs,ln_wAs,l10_wAs,wAs1,wAs1_lab,wAs10,wAs10_lab,wAs50,wAs50_lab,
     
     # Urinary Arsenic
-    uAs,ln_uAs,l10_uAs,uAs3,uAsB,
+    uAs,ln_uAs,l10_uAs,uAs_p10,uAsB,
     
     # Confounders
-    AGE,SEGSTAGE,PARITY,EDUCATION,LSI,SEBMI,medSEMUAC,PETOBAC,PEBETEL,PEHCIGAR
+    AGE,SEGSTAGE,PARITY,EDUCATION,LSI,SEBMI,medSEMUAC,PETOBAC,PEBETEL,PEHCIGAR,
+    wFe,ln_wFe,l10_wFe
   )
 
 df %>% head()

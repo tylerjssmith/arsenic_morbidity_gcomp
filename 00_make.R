@@ -35,22 +35,23 @@ source("02C_gcomp.R")
 # Table 1
 source("03A_table1.R")
 
-# Table 2
-source("03B_table2.R")
-
 # Figure 1
-source("03C_fig1.R")
+# (Note: This figure is the selection flowchart, which was made with draw.io.)
 
 # Figure 2
-source("03D_fig2.R")
+source("03B_fig2.R")
 
 # Figure 3
+source("03C_fig3.R")
 
 # Figure 4
+source("03D_fig4.R")
+
+# Figure 5
+source("03E_fig5.R")
 
 ##### 04 Supplemental Tables and Figures #######################################
 # Table S1
-
-# Figure S1
+source("04A_tblS1.R")
 
 
