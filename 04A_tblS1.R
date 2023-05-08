@@ -33,16 +33,8 @@ df %>% head()
 
 ##### Generate Tables ##########################################################
 # Selection
-(tblS1a <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wAs + ln_uAs | SELECTED, 
+(tblS1 <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wAs + ln_uAs | SELECTED, 
   data = df, overall = FALSE, render.continuous = c(. = "Mean (SD)"), extra.col = list(`p` = tbl_pval)))
-
-# Live Birth
-(tblS1b <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wAs + ln_uAs | LIVEBIRTH, 
-  data = df, overall = FALSE, render.continuous = c(. = "Mean (SD)"), extra.col = list(`p` = tbl_pval)))
-
-# Selection | Live Birth
-(tblS1c <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wAs + ln_uAs | SELECTED, 
-  data = df %>% filter(LIVEBIRTH == 1), overall = FALSE, render.continuous = c(. = "Mean (SD)"), extra.col = list(`p` = tbl_pval)))
 
 
 

@@ -11,7 +11,7 @@ library(tidyverse)
 
 ##### Generate Figure ##########################################################
 # Prepare Data
-df_fig2 <- df_selected %>%
+df_fig3 <- df_selected %>%
   select(wAs1,wAs10,wAs50,l10_uAs) %>%
   pivot_longer(
     cols = -l10_uAs,
@@ -19,19 +19,19 @@ df_fig2 <- df_selected %>%
     values_to = "Status")
 
 # (Label Standard)
-df_fig2 <- df_fig2 %>%
+df_fig3 <- df_fig3 %>%
   mutate(Standard = factor(Standard, levels = c("wAs1","wAs10","wAs50"),
     labels = c("1 µg/L","10 µg/L","50 µg/L")))
 
 # (Label Status)
-df_fig2 <- df_fig2 %>%
+df_fig3 <- df_fig3 %>%
   mutate(Status = factor(Status, levels = c(0:1),
     labels = c("Complies","Exceeds")))
 
-df_fig2 %>% head()
+df_fig3 %>% head()
 
 # Generate Figure
-(fig2 <- df_fig2 %>%
+(fig3 <- df_fig3 %>%
   na.omit() %>%
   ggplot(aes(x = l10_uAs, fill = Status)) +
   geom_density(alpha = 0.4) +
@@ -45,4 +45,4 @@ df_fig2 %>% head()
   th)
 
 # Remove Objects
-rm(df_fig2)
+rm(df_fig3)

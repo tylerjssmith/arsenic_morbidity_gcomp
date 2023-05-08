@@ -239,16 +239,9 @@ df %>%
 df <- df %>%
   mutate(l10_uAs = log10(uAs))
 
-# Intervention
-df %>%
-  summarise(
-    n = sum(!is.na(uAs)),
-    p10 = quantile(uAs, 0.1, 
-      na.rm = TRUE)
-  )
-
-df <- df %>%
-  mutate(uAs_p10 = ifelse(uAs > quantile(uAs, 0.10, na.rm = TRUE), 1, 0))
+# Interventions
+# (Note: The interventions are defined in terms of percentiles in the study
+#  sample and are implemented in a subsequent script.)
 
 ##### Age at Enrollment ########################################################
 df <- df %>%
@@ -371,7 +364,7 @@ df <- df %>%
     wAs,ln_wAs,l10_wAs,wAs1,wAs1_lab,wAs10,wAs10_lab,wAs50,wAs50_lab,
     
     # Urinary Arsenic
-    uAs,ln_uAs,l10_uAs,uAs_p10,uAsB,
+    uAs,ln_uAs,l10_uAs,uAsB,
     
     # Confounders
     AGE,SEGSTAGE,PARITY,EDUCATION,LSI,SEBMI,medSEMUAC,PETOBAC,PEBETEL,PEHCIGAR,

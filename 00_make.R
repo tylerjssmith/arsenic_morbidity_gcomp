@@ -19,7 +19,7 @@ source("01C_setup_data_covar.R")
 source("01D_setup_data_outcomes.R")
 
 # Data - Reconcile
-source("01E_setup_data_reconcile.R")
+source("01E_setup_data_selection.R")
 
 ##### 02 Analysis ##############################################################
 # Exploratory Data Analysis
@@ -33,22 +33,28 @@ source("02C_gcomp.R")
 
 ##### 03 Tables and Figures ####################################################
 # Table 1
-source("03A_table1.R")
+source("03A_tbl1.R")
+
+# Table 2
+source("03B_tbl2.R")
+
+# Table 3
+source("03C_tbl3.R")
 
 # Figure 1
 # (Note: This figure is the selection flowchart, which was made with draw.io.)
 
 # Figure 2
-source("03B_fig2.R")
+source("03D_fig2.R")
 
 # Figure 3
-source("03C_fig3.R")
+source("03E_fig3.R")
 
 # Figure 4
-source("03D_fig4.R")
+source("03F_fig4.R")
 
 # Figure 5
-source("03E_fig5.R")
+source("03G_fig5.R")
 
 ##### 04 Supplemental Tables and Figures #######################################
 # Table S1
