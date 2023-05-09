@@ -32,7 +32,7 @@ check_discrete <- function(data, x)
 }
 
 ##### Functions: Check Outcomes ################################################
-# Function: Check Calls by Age for Random Subset (n=25)
+# Function: Check Calls by Age for Random Subset
 check_calls <- function(data = ili, n = 25)
 {
   # Sample UID
@@ -63,57 +63,86 @@ check_calls <- function(data = ili, n = 25)
 }
 
 ##### Functions: G-Computation #################################################
-# Function: G-Computation Point Estimate
-gcomp_pt <- function(data, model, A) {
+# Function: Implement G-Computation
+gcomp <- function(data, y, x, family = "quasipoisson", n_mc = 10000, 
+  R = 1000, seed = 7023, verbose = FALSE) 
+{
+  ##### Point Estimate #########################################################
+  # (1) Fit Model
+  frm <- paste(y, "~", x, "+ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + offset(log(WEEKS))")
   
-  # Generate Data Sets
-  data_Y1 <- data %>% rename(.x = {{ A }}) %>% mutate(.x = 0)
-  data_Y0 <- data %>% rename(.x = {{ A }})
+  model <- glm(frm, data = data, family = family)
   
-  # Get Predictions
-  Y1 <- predict(model, data_Y1, type = "response") / data_Y1$WEEKS
-  Y0 <- predict(model, data_Y0, type = "response") / data_Y0$WEEKS
+  # (2) Predict Outcomes
+  dt_id <- sample(1:nrow(data), n_mc, replace = TRUE)
+  dt_mc <- data[dt_id, ]
   
-  # Take Mean Difference
-  out <- mean(Y1 - Y0)
-  return(out)
+  dt_mc_Y1 <- dt_mc %>% mutate("{x}" := 0)
+  dt_mc_Y0 <- dt_mc
   
-}
+  Y1 <- predict(model, dt_mc_Y1, type = "response") / 
+    dt_mc_Y1$WEEKS
+  Y0 <- predict(model, dt_mc_Y0, type = "response") / 
+    dt_mc_Y0$WEEKS
+  
+  # (3) Take Mean Difference
+  mean_Y1 <- mean(Y1)
+  mean_Y0 <- mean(Y0)
 
-# Function: G-Computation: Bootstrap
-gcomp_bs <- function(data, model, A, R = 1000) {
-
-  out <- numeric()
+  ##### Bootstrap ##############################################################
+  boot_mean_Y1 <- numeric()
+  boot_mean_Y0 <- numeric()
+  
+  set.seed(seed)
   
   for(i in 1:R) {
+    
+    # Sample with Replacement
+    boot_id <- sample(1:nrow(data), nrow(data), replace = TRUE)
+    boot_dt <- data[boot_id, ]
+    
+    # (1) Re-fit Model
+    new_model <- update(model, data = boot_dt)
+    
+    # (2) Predict Outcomes
+    boot_dt_id <- sample(1:nrow(boot_dt), n_mc, replace = TRUE)
+    boot_dt_mc <- boot_dt[boot_dt_id, ]
+    
+    boot_dt_mc_Y1 <- boot_dt_mc %>% mutate("{x}" := 0)
+    boot_dt_mc_Y0 <- boot_dt_mc
   
-    boot_uid <- sample(1:nrow(data), nrow(data), replace = TRUE)
-    boot_dat <- data[boot_uid, ]
+    boot_Y1 <- predict(new_model, boot_dt_mc_Y1, type = "response") / 
+      boot_dt_mc_Y1$WEEKS
+    boot_Y0 <- predict(new_model, boot_dt_mc_Y0, type = "response") / 
+      boot_dt_mc_Y0$WEEKS
   
-    boot_dat <- boot_dat %>% rename(.x = A)
+    # (3) Take Mean Difference
+    boot_mean_Y1[i] <- mean(boot_Y1)
+    boot_mean_Y0[i] <- mean(boot_Y0)
   
-    new_model <- update(model, data = boot_dat)
-  
-    out[i] <- boot_dat %>%
-      gcomp_pt(model = new_model, A = ".x")
+    if(verbose) {
+      message(paste("gcomp:", y, "~", x, ":", i, "/", R))
+    }
+    
   }
   
+  ##### Combine Results ########################################################
+  out <- list(
+    y = y,
+    x = x,
+    model = model,
+    mean_Y1 = mean_Y1,
+    mean_Y0 = mean_Y0,
+    boot_mean_Y1 = boot_mean_Y1,
+    boot_mean_Y0 = boot_mean_Y0,
+    n_obs = nobs(model),
+    n_mc = n_mc,
+    R = R,
+    verbose = verbose
+  )
+  
   return(out)
-}
-
-# Function: G-Computation
-gcomp <- function(data, model, A) {
   
-  estimate <- data %>% gcomp_pt(model, A)
-  bs <- data %>% gcomp_bs(model, A)
-  
-  conf.low <- quantile(bs, 0.025)
-  conf.high <- quantile(bs, 0.975)
-  
-  out <- tibble(A, estimate, conf.low, conf.high)
-  
-  return(out)
-
 }
 
 ##### Functions: Tables ########################################################

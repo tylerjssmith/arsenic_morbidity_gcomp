@@ -21,16 +21,18 @@ df_fig5 <- df_fig5 %>%
   mutate(type = ifelse(grepl("wAs", A), "Water", "Urine")) %>%
   mutate(type = factor(type, 
     levels = c("Water","Urine"),
-    labels = c("wAs","∑uAs")
+    labels = c("wAs Standard","∑uAs Percentile")
   ))
 
 # Label Intervention
 df_fig5 <- df_fig5 %>%
   mutate(A = factor(A,
-    levels = c("wAs1","wAs10","wAs50","uAs_p10","uAs_p25","uAs_p50"),
-    labels = c("Bangladesh\n1 µg/L","WHO\n10 µg/L","The Netherlands\n50 µg/L",
-      "10th Percentile\n12.5 µg/L","25th Percentile\n19.3 µg/L",
-      "50th Percentile\n32.3 µg/L")
+    levels = c(
+      "wAs1","wAs10","wAs50",
+      "uAs_p10","uAs_p25","uAs_p50"),
+    labels = c(
+      "The Netherlands\n(1 µg/L)","WHO\n(10 µg/L)","Bangladesh\n(50 µg/L)",
+      "10th\n(12.5 µg/L)","25th\n(19.3 µg/L)","50th\n(32.3 µg/L)")
   ))
 
 ##### Generate Figure ##########################################################
@@ -43,7 +45,15 @@ df_fig5 <- df_fig5 %>%
   scale_y_continuous(limits = c(-60,20), breaks = seq(-80,20,20)) + 
   facet_grid(outcome ~ type, scales = "free_x") +
   labs(
-    x = "Intervention", 
+    x = "Exposure", 
     y = "Marginal Incidence Rate Difference
     (Cases/1,000 Person-weeks)") +
-  th)
+  th + 
+  theme(
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 12)),
+    axis.text.x = element_text(lineheight = 1.1)))
+
+df_fig5
+
+

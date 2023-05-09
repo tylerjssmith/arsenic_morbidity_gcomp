@@ -78,19 +78,27 @@ df_selected <- df_selected %>%
 # Enrolled (n=784)
 df %>% nrow()
 
-# +Complete Covariate Data
-df %>% count(COMPLETE)
-
 # +Live Births
 df %>% 
-  filter(COMPLETE == "Complete") %>%
   count(LIVEBIRTH)
 
 # +Singleton Live Births
 df %>% 
-  filter(COMPLETE == "Complete") %>%
   filter(LIVEBIRTH == 1) %>% 
   count(SINGLETON)
+
+# +Complete Covariate Data
+df %>% 
+  select(-contains("ILI"), -WEEKS, -FIRSTCALL) %>%
+  filter(SINGLETON == 1) %>%
+  sapply(function(x) sum(is.na(x))) %>%
+  as_tibble(rownames = "Var") %>%
+  filter(value > 0)
+  
+df %>% 
+  select(-contains("ILI"), -WEEKS, -FIRSTCALL) %>%
+  filter(SINGLETON == 1) %>%
+  na.omit()
 
 # +Contributed ≥1 Person-week
 df %>%

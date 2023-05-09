@@ -60,3 +60,29 @@ ili %>%
 ili %>%
   select(DATE) %>%
   arrange(desc(DATE))
+
+##### Results ##################################################################
+# Maternal Age
+df_selected %>%
+  summarise(
+    n = n(),
+    median = median(AGE),
+    q1 = quantile(AGE, 0.25),
+    q3 = quantile(AGE, 0.75)
+  )
+
+# Gestational Age
+df_selected %>%
+  summarise(
+    n = n(),
+    median = median(AGE),
+    q1 = quantile(AGE, 0.25),
+    q3 = quantile(AGE, 0.75)
+  )
+
+# Parity
+df_selected %>%
+  count(PARITY) %>%
+  mutate(p = n / sum(n) * 100)
+
+

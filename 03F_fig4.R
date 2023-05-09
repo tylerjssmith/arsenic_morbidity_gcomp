@@ -36,10 +36,16 @@ df_fig4 <- rbind(
 ##### Label Variables ##########################################################
 # Label Exposure
 df_fig4 <- df_fig4 %>%
-  mutate(type = ifelse(grepl("wAs", A), "Water", "Urine")) %>%
+  mutate(
+    type = 
+      ifelse(A %in% c("wAs1","wAs10","wAs50"), 1, 
+      ifelse(A %in% c("uAs_p10","uAs_p25","uAs_p50"), 2, 3))
+  )
+
+df_fig4 <- df_fig4 %>%
   mutate(type = factor(type, 
-    levels = c("Water","Urine"),
-    labels = c("wAs","∑uAs")
+    levels = 1:3,
+    labels = c("wAs Standard","∑uAs Percentile","Continuous")
   ))
 
 df_fig4 %>% head()
@@ -55,9 +61,8 @@ df_fig4 <- df_fig4 %>%
   mutate(A = factor(A,
     levels = c("wAs1","wAs10","wAs50","uAs_p10","uAs_p25","uAs_p50",
       "ln_wAs","ln_uAs"),
-    labels = c("Bangladesh\nI(1 µg/L)","WHO\nI(10 µg/L)","The Netherlands\nI(50 µg/L)",
-      "10th Percentile\nI(12.5 µg/L)","25th Percentile\nI(19.3 µg/L)",
-      "50th Percentile\nI(32.3 µg/L)","ln(wAs)","ln(∑uAs)")
+    labels = c("The Netherlands\n(1 µg/L)","WHO\n(10 µg/L)","Bangladesh\n(50 µg/L)",
+      "10th\n(12.5 µg/L)","25th\n(19.3 µg/L)","50th\n(32.3 µg/L)","ln wAs","ln ∑uAs")
   ))
 
 df_fig4 %>% head()
@@ -67,6 +72,17 @@ df_fig4 <- df_fig4 %>%
   select(outcome, type, A, set, estimate, conf.low, conf.high, p.value)
 
 df_fig4 %>% head()
+
+##### Get Estimates ############################################################
+df_fig4 %>%
+  filter(set == "Adjusted") %>%
+  filter(grepl("wAs",type) | grepl("wAs",A)) %>%
+  mutate(across(c(estimate,conf.low,conf.high), ~ round(exp(.x), 2)))
+
+df_fig4 %>%
+  filter(set == "Adjusted") %>%
+  filter(grepl("uAs",type) | grepl("uAs",A)) %>%
+  mutate(across(c(estimate,conf.low,conf.high), ~ round(exp(.x), 2)))
 
 ##### Generate Figure ##########################################################
 (fig4 <- df_fig4 %>%
@@ -78,9 +94,12 @@ df_fig4 %>% head()
   scale_y_continuous(limits = c(-0.4,0.8), breaks = seq(-0.4,0.8,0.2)) +
   facet_grid(outcome ~ type, scales = "free_x") +
   labs(
-    x = "Intervention/Exposure",
-    y = "ln(Conditional Incident Rate Ratio)",
+    x = "Exposure",
+    y = "ln Incidence Rate Ratio\n(95% Confidence Interval)",
     color = "Model") +
   th + 
-  theme(legend.position = "bottom"))
+  theme(
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 12)),
+    axis.text.x = element_text(lineheight = 1.1)))
   
