@@ -29,7 +29,7 @@ source("02A_explore.R")
 source("02B_regression.R")
 
 # G-Computation
-source("02C_gcomp.R")
+#source("02C_gcomp.R")
 
 ##### 03 Tables and Figures ####################################################
 # Table 1
