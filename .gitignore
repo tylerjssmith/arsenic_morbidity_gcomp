@@ -2,4 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-.Rproj
+.DS_Store
+export_tables_figures.R
+archive/

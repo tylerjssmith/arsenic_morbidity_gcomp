@@ -1,6 +1,6 @@
 ################################################################################
 # Pregnancy, Arsenic, and Immune Response (PAIR) Study
-# Prenatal Arsenic and Acute Morbidity -- Table 1
+# Prenatal Arsenic and Acute Morbidity -- Table 2
 
 # Tyler Smith
 # April 28, 2023
@@ -29,25 +29,29 @@ units(df_selected$SEGSTAGE)  <- "weeks"
 units(df_selected$medSEMUAC) <- "cm"
 
 # Check Data
-df %>% head()
+df_selected %>% head()
 
 ##### Generate Tables ##########################################################
-# Drinking Water Arsenic >1 µg/L
-(tbl1a <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR | wAs1_lab, 
-  data = df_selected, overall = FALSE, render.continuous = c(. = "Mean (SD)"), extra.col = list(`p` = tbl_pval)))
-
-# Drinking Water Arsenic >10 µg/L
-(tbl1b <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR | wAs10_lab, 
-  data = df_selected, overall = FALSE, render.continuous = c(. = "Mean (SD)"), extra.col = list(`p` = tbl_pval)))
-
-# Drinking Water Arsenic >50 µg/L
-(tbl1c <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR | wAs50_lab, 
-  data = df_selected, overall = FALSE, render.continuous = c(. = "Mean (SD)"), extra.col = list(`p` = tbl_pval)))
-
 # Urinary Arsenic >10th Percentile
-(tbl1c <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR | uAs_p10, 
+(tbl2a <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wAs + ln_uAs | uAs_p10_lab, 
   data = df_selected, overall = FALSE, render.continuous = c(. = "Mean (SD)"), extra.col = list(`p` = tbl_pval)))
 
+# Urinary Arsenic >25th Percentile
+(tbl2b <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wAs + ln_uAs | uAs_p25_lab, 
+  data = df_selected, overall = FALSE, render.continuous = c(. = "Mean (SD)"), extra.col = list(`p` = tbl_pval)))
 
+# Urinary Arsenic >50th Percentile
+(tbl2c <- table1(~ AGE + SEGSTAGE + PARITY + EDUCATION + LSI + medSEMUAC + PETOBAC + PEBETEL + PEHCIGAR + ln_wAs + ln_uAs | uAs_p50_lab, 
+  data = df_selected, overall = FALSE, render.continuous = c(. = "Mean (SD)"), extra.col = list(`p` = tbl_pval)))
 
+# Get Geometric Means for Arsenic Variables
+df_selected %>%
+  select(uAs_p10,uAs_p25,uAs_p50,uAs) %>%
+  pivot_longer(-uAs) %>%
+  group_by(name, value) %>%
+  summarise(
+    n = n(),
+    GM = exp(mean(log(uAs))),
+    GSD = exp(sd(log(uAs)))) %>%
+  mutate(across(c(GM,GSD), ~ round(.x, 1)))
 

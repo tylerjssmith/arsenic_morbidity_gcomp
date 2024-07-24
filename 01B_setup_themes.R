@@ -14,9 +14,13 @@ th <- theme_bw() +
   theme(
     panel.grid.major.x = element_blank(),
     panel.grid.minor = element_blank(),
-    strip.text = element_text(size = 14),
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 14),
+    strip.text = element_text(size = 14, lineheight = 1.15),
+    panel.spacing.x = unit(6, "mm"),
     axis.title = element_text(size = 14),
     axis.text = element_text(size = 12),
     legend.title = element_text(size = 14),
-    legend.text = element_text(size = 12)
+    legend.text = element_text(size = 14),
+    plot.caption = element_text(size = 10)
   )
